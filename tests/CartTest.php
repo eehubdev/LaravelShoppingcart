@@ -816,7 +816,7 @@ class CartTest extends TestCase
     }
 
     #[Test]
-    public function it_can_update_the_cart_in_database()
+    public function it_can_update_an_already_stored_cart_in_the_database()
     {
         $this->artisan('migrate', [
             '--database' => 'testing',
@@ -830,11 +830,39 @@ class CartTest extends TestCase
 
         $cart->store($identifier = 123);
 
+        // Change the cart and store it again under the same identifier.
+        $cart->update('027c91341fd5cf4d2579b49c4b6a90da', 2);
+
+        $cart->store($identifier);
+
         $serialized = serialize($cart->content());
 
         $this->assertDatabaseHas('shoppingcart', ['identifier' => $identifier, 'instance' => 'default', 'content' => $serialized]);
-        
+
+        // Storing again must overwrite, not duplicate, the stored cart.
+        $this->assertDatabaseCount('shoppingcart', 1);
+
         Event::assertDispatched('cart.stored');
+    }
+
+    #[Test]
+    public function it_can_delete_a_stored_cart_from_the_database()
+    {
+        $this->artisan('migrate', [
+            '--database' => 'testing',
+        ]);
+
+        $cart = $this->getCart();
+
+        $cart->add(new BuyableProduct);
+
+        $cart->store($identifier = 123);
+
+        $this->assertDatabaseHas('shoppingcart', ['identifier' => $identifier]);
+
+        $cart->deleteStoredCart($identifier);
+
+        $this->assertDatabaseMissing('shoppingcart', ['identifier' => $identifier]);
     }
 
     #[Test]
