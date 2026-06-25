@@ -8,15 +8,12 @@ use Illuminate\Support\ServiceProvider;
 
 class ShoppingcartServiceProvider extends ServiceProvider
 {
-
     /**
      * Register the service provider.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
-        $this->app->bind('cart', 'Gloudemans\Shoppingcart\Cart');
+        $this->app->bind('cart', \Gloudemans\Shoppingcart\Cart::class);
 
         $config = __DIR__ . '/../config/cart.php';
         $this->mergeConfigFrom($config, 'cart');
@@ -29,7 +26,7 @@ class ShoppingcartServiceProvider extends ServiceProvider
             }
         });
 
-        if ( ! class_exists('CreateShoppingcartTable')) {
+        if (! class_exists('CreateShoppingcartTable')) {
             // Publish the migration
             $timestamp = date('Y_m_d_His', time());
 
